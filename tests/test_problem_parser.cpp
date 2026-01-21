@@ -91,3 +91,82 @@ TEST_CASE("parse_problem_line: rejects incorrect number of inputs") {
     CHECK_THROWS(parse_problem_line("p cnf 1"));
 }
 
+// ----------------------------------------
+// PARSE_DIMACS_CNF
+// ----------------------------------------
+
+TEST_CASE("parse_dimacs_cnf: parses simple problem") {
+    std::istringstream fake_file(
+        "p cnf 3 2\n"
+        "1 -2 3 0\n"
+        "-1 2 -3 0\n"
+    );
+    SATProblem problem = parse_dimacs_cnf(fake_file);
+    
+    CHECK(problem.num_variables == 3);
+    CHECK(problem.clauses.size() == 2);
+    CHECK(problem.clauses[0].size() == 3);
+    CHECK(problem.clauses[0][0] == 1);
+    CHECK(problem.clauses[0][1] == -2);
+    CHECK(problem.clauses[0][2] == 3);
+    CHECK(problem.clauses[1].size() == 3);
+    CHECK(problem.clauses[1][0] == -1);
+    CHECK(problem.clauses[1][1] == 2);
+    CHECK(problem.clauses[1][2] == -3);
+}
+
+TEST_CASE("parse_dimacs_cnf: handles comments") {
+    std::istringstream fake_file(
+        "c This is a comment\n"
+        "p cnf 2 1\n"
+        "1 2 0\n"
+    );
+    SATProblem problem = parse_dimacs_cnf(fake_file);
+    
+    CHECK(problem.num_variables == 2);
+    CHECK(problem.clauses.size() == 1);
+}
+
+TEST_CASE("parse_dimacs_cnf: handles empty lines") {
+    std::istringstream fake_file(
+        "\n"
+        "p cnf 2 1\n"
+        "\n"
+        "1 2 0\n"
+        "\n"
+    );
+    SATProblem problem = parse_dimacs_cnf(fake_file);
+    
+    CHECK(problem.num_variables == 2);
+    CHECK(problem.clauses.size() == 1);
+}
+
+TEST_CASE("parse_dimacs_cnf: throws when no problem line") {
+    std::istringstream fake_file("1 2 0\n");
+    CHECK_THROWS(parse_dimacs_cnf(fake_file));
+}
+
+TEST_CASE("parse_dimacs_cnf: throws when clauses before problem line") {
+    std::istringstream fake_file(
+        "1 2 0\n"
+        "p cnf 2 1\n"
+    );
+    CHECK_THROWS(parse_dimacs_cnf(fake_file));
+}
+
+TEST_CASE("parse_dimacs_cnf: handles single literal clauses") {
+    std::istringstream fake_file(
+        "p cnf 2 2\n"
+        "1 0\n"
+        "-2 0\n"
+    );
+    SATProblem problem = parse_dimacs_cnf(fake_file);
+    
+    CHECK(problem.num_variables == 2);
+    CHECK(problem.clauses.size() == 2);
+    CHECK(problem.clauses[0].size() == 1);
+    CHECK(problem.clauses[0][0] == 1);
+    CHECK(problem.clauses[1].size() == 1);
+    CHECK(problem.clauses[1][0] == -2);
+}
+

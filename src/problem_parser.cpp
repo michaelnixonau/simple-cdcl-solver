@@ -8,6 +8,54 @@
 #include <vector>
 
 #include "../include/problem_parser.h"
+#include "../src/types.h"
+
+SATProblem parse_dimacs_cnf(std::istream& in) {
+    SATProblem problem;
+    problem.num_variables = 0;
+    
+    std::string line;
+    ProblemLine pl;
+    bool problem_line_found = false;
+    
+    while (std::getline(in, line)) {
+        if (line.empty()) continue;
+        
+        if (line.front() == 'c') {
+            continue;
+        }
+        
+        if (line.front() == 'p') {
+            pl = parse_problem_line(line);
+            problem.num_variables = pl.num_variables;
+            problem_line_found = true;
+            continue;
+        }
+        
+        if (!problem_line_found) {
+            throw std::runtime_error("parse_dimacs_cnf: clauses found before problem line");
+        }
+        
+        std::istringstream iss(line);
+        Clause clause;
+        int lit;
+        
+        while (iss >> lit) {
+            if (lit == 0) break;
+            clause.push_back(lit);
+        }
+        
+        if (!clause.empty()) {
+            problem.clauses.push_back(clause);
+        }
+    }
+    
+    if (!problem_line_found) {
+        throw std::runtime_error("parse_dimacs_cnf: no problem line found");
+    }
+    
+    return problem;
+}
 
 std::vector<std::string> split(const std::string& s, char delim) {
     std::vector<std::string> parts;

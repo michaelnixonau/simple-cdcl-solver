@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(mylib
         src/math.cpp
+        src/problem_parser.cpp
 )
 target_include_directories(mylib PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -20,15 +21,12 @@ target_link_libraries(mycli PRIVATE mylib)
 
 add_executable(unit_tests
         tests/test_math.cpp
+        tests/test_problem_parser.cpp
+        tests/main.cpp
 )
 target_link_libraries(unit_tests PRIVATE mylib)
 
-# Warnings: apply to both executables (and optionally the library too)
-target_compile_options(mycli PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/W4>
-        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
-)
-target_compile_options(unit_tests PRIVATE
+target_compile_options(mylib PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4>
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
 )
